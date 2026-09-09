@@ -523,9 +523,12 @@ def tpl_tethermine(amount: int, tx: datetime, bank_name: str,
     net_ngn = amount                          # naira received
     usdt    = net_ngn / NGN_PER_USDT          # withdrawal amount in USDT
     ref     = "WD-" + str(random.randint(1, 99_999_999)).zfill(8)
+    acct    = str(account_number).strip()
+    masked_acct = f"{acct[:3]}*****{acct[-3:]}" if len(acct) >= 6 else mask_account(acct)
+    name_fmt = account_name.title()
     destination = (f"Bank Name: {bank_name} | "
-                   f"Account Number: {mask_account(account_number)} | "
-                   f"Account Name: {account_name}")
+                   f"Account Number: {masked_acct} | "
+                   f"Account Name: {name_fmt}")
     months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
     date_str = f"{months[tx.month-1]} {tx.day}, {tx.year} {fmt_time_hm(tx)}"
     return f"""<!DOCTYPE html>
@@ -537,49 +540,40 @@ def tpl_tethermine(amount: int, tx: datetime, bank_name: str,
 <title>Withdrawal Receipt | TetherMine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Symbols+2&display=swap" rel="stylesheet">
 <style>
 * {{ box-sizing:border-box; margin:0; padding:0; }}
-body {{ font-family:'Inter',sans-serif; background:#0a0f1a; }}
+html, body {{ font-family:'Inter',sans-serif; background:#0a0f1a; }}
 
-.receipt-modal{{ position:fixed; inset:0; align-items:center; justify-content:center; z-index:10000; padding:20px; }}
-.receipt-modal.active{{ display:flex; }}
-
-.receipt-overlay{{ position:absolute; inset:0; background:rgba(0,0,0,.75); backdrop-filter:blur(10px); }}
+/* In-flow layout so the screenshot renderer measures the full height. */
+.receipt-modal{{ display:flex; align-items:flex-start; justify-content:center; min-height:100%; padding:24px 16px; }}
 
 .receipt-card{{
-    position:relative; width:100%; max-width:520px; max-height:90vh; overflow:hidden;
-    background:#111827; border-radius:28px; z-index:2;
+    position:relative; width:100%; max-width:520px;
+    background:#111827; border-radius:28px; overflow:hidden;
     border:1px solid rgba(255,255,255,.08);
     box-shadow:0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05);
-    animation:receiptPop .25s ease;
 }}
-@keyframes receiptPop{{ from{{ opacity:0; transform:translateY(15px) scale(.97); }} to{{ opacity:1; transform:translateY(0) scale(1); }} }}
 
 .receipt-close{{
     position:absolute; top:18px; right:18px; width:42px; height:42px;
     border:none; border-radius:50%; background:rgba(255,255,255,.08); color:#fff;
-    cursor:pointer; font-size:22px; transition:.2s; z-index:5;
+    font-size:22px; line-height:1; display:flex; align-items:center; justify-content:center; z-index:5;
 }}
-.receipt-close:hover{{ background:rgba(255,255,255,.15); transform:rotate(90deg); }}
 
-.receipt-header{{ padding:35px 30px; text-align:center; background:radial-gradient(circle at top, rgba(34,197,94,.12), transparent 70%); }}
+.receipt-header{{ padding:35px 30px 10px; text-align:center; background:radial-gradient(circle at top, rgba(34,197,94,.12), transparent 70%); }}
 .receipt-check{{
-    width:60px; height:60px; margin:0 auto 18px; border-radius:50%;
+    width:90px; height:90px; margin:0 auto 20px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
-    font-size:42px; font-weight:700; color:#22c55e;
-    background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.18);
-    animation:pulseCheck 1.8s infinite;
-}}
-@keyframes pulseCheck{{
-    0%{{ transform:scale(1); box-shadow:0 0 0 0 rgba(34,197,94,.45); }}
-    70%{{ transform:scale(1.08); box-shadow:0 0 0 18px rgba(34,197,94,0); }}
-    100%{{ transform:scale(1); box-shadow:0 0 0 0 rgba(34,197,94,0); }}
+    font-family:'Noto Sans Symbols 2','Segoe UI Symbol','DejaVu Sans',sans-serif;
+    font-size:54px; font-weight:700; line-height:1; color:#22c55e;
+    background:rgba(34,197,94,.14); border:1px solid rgba(34,197,94,.35);
+    box-shadow:0 0 0 8px rgba(34,197,94,.05), 0 0 44px rgba(34,197,94,.35);
 }}
 .receipt-header h3{{ margin:0; font-size:28px; font-weight:700; color:#fff; }}
 .receipt-header p{{ margin-top:8px; color:#94a3b8; font-size:15px; }}
 
-.receipt-body{{ padding:0 28px 28px; max-height:60vh; overflow-y:auto; }}
+.receipt-body{{ padding:14px 28px 30px; }}
 
 .receipt-amount{{ text-align:center; padding:24px 0 28px; border-top:1px solid rgba(255,255,255,.05); border-bottom:1px dashed rgba(255,255,255,.08); }}
 .receipt-amount-label{{ display:block; color:#94a3b8; font-size:13px; margin-bottom:8px; }}
@@ -590,15 +584,14 @@ body {{ font-family:'Inter',sans-serif; background:#0a0f1a; }}
 .receipt-row span{{ color:#94a3b8; font-size:14px; }}
 .receipt-row strong{{ color:#fff; text-align:right; max-width:65%; word-break:break-word; line-height:1.5; }}
 
-.receipt-status-badge{{ display:inline-flex; align-items:center; justify-content:center; padding:8px 14px; border-radius:999px; font-size:13px; font-weight:600; white-space:nowrap; }}
+.receipt-status-badge{{ display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:8px 16px; border-radius:999px; font-size:13px; font-weight:600; white-space:nowrap; }}
 .status-success{{ background:rgba(34,197,94,.12); color:#22c55e; border:1px solid rgba(34,197,94,.2); }}
+.status-dot{{ width:7px; height:7px; border-radius:50%; background:currentColor; opacity:.75; }}
 </style>
 </head>
 <body>
 
-<div class="receipt-modal active">
-
-    <div class="receipt-overlay"></div>
+<div class="receipt-modal">
 
     <div class="receipt-card">
 
@@ -639,7 +632,7 @@ body {{ font-family:'Inter',sans-serif; background:#0a0f1a; }}
 
             <div class="receipt-row">
                 <span>Status</span>
-                <strong><span class="receipt-status-badge status-success">Completed</span></strong>
+                <strong><span class="receipt-status-badge status-success"><span class="status-dot"></span>Completed</span></strong>
             </div>
 
             <div class="receipt-row">
@@ -822,7 +815,7 @@ TEMPLATES = [
 
 # ════════════════════════════════════════════════════════════════
 # PLAYWRIGHT RENDERER
-# ════════════════════════════════════════════════════════════════
+# ═══════════════════��════════════════════════════════════════════
 def get_chromium_path():
     for p in ["/usr/bin/chromium", "/usr/bin/chromium-browser", "/usr/bin/google-chrome"]:
         if os.path.exists(p):
