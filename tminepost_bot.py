@@ -536,114 +536,236 @@ def tpl_tethermine(amount: int, tx: datetime, bank_name: str,
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#111827">
+<meta name="theme-color" content="#06132d">
 <title>Withdrawal Receipt | TetherMine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Symbols+2&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-* {{ box-sizing:border-box; margin:0; padding:0; }}
-html, body {{ font-family:'Inter',sans-serif; background:#0a0f1a; }}
+* {{ box-sizing:border-box; }}
+html, body {{ margin:0; padding:0; background:#000512; font-family:'Inter',sans-serif; }}
 
-/* In-flow layout so the screenshot renderer measures the full height. */
-.receipt-modal{{ display:flex; align-items:flex-start; justify-content:center; min-height:100%; padding:24px 16px; }}
-
-.receipt-card{{
-    position:relative; width:100%; max-width:520px;
-    background:#111827; border-radius:28px; overflow:hidden;
-    border:1px solid rgba(255,255,255,.08);
-    box-shadow:0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05);
+.receipt-modal {{
+    --receipt-bg: #06132d;
+    --receipt-row-icon: #14284b;
+    --receipt-text: #f5f7ff;
+    --receipt-muted: #a8b7df;
+    --receipt-line: rgba(151, 174, 220, .15);
+    --receipt-green: #21f58b;
+    /* Static, in-flow layout so the screenshot captures the full card. */
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 8px;
+    color: var(--receipt-text);
+    background: rgba(0, 5, 18, .82);
 }}
-
-.receipt-close{{
-    position:absolute; top:18px; right:18px; width:42px; height:42px;
-    border:none; border-radius:50%; background:rgba(255,255,255,.08); color:#fff;
-    font-size:22px; line-height:1; display:flex; align-items:center; justify-content:center; z-index:5;
+.receipt-card {{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 584px;
+    overflow: hidden;
+    border: 1px solid rgba(88, 121, 181, .24);
+    border-radius: 24px;
+    background:
+        radial-gradient(ellipse at 50% -12%, rgba(0, 218, 128, .13), transparent 40%),
+        var(--receipt-bg);
+    box-shadow: 0 28px 90px rgba(0,0,0,.52), inset 0 1px 0 rgba(255,255,255,.035);
 }}
-
-.receipt-header{{ padding:35px 30px 10px; text-align:center; background:radial-gradient(circle at top, rgba(34,197,94,.12), transparent 70%); }}
-.receipt-check{{
-    width:90px; height:90px; margin:0 auto 20px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    font-family:'Noto Sans Symbols 2','Segoe UI Symbol','DejaVu Sans',sans-serif;
-    font-size:54px; font-weight:700; line-height:1; color:#22c55e;
-    background:rgba(34,197,94,.14); border:1px solid rgba(34,197,94,.35);
-    box-shadow:0 0 0 8px rgba(34,197,94,.05), 0 0 44px rgba(34,197,94,.35);
+.receipt-header {{ padding: 16px 16px 4px; text-align: center; }}
+.receipt-check {{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 11px;
+    border: 2px solid #39ff9a;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 25%, #0cf28a, #008d63 70%, #075341);
+    color: #fff;
+    font-size: 36px;
+    box-shadow: 0 0 0 8px rgba(25, 231, 131, .08), 0 0 32px rgba(16, 235, 128, .42), inset 0 0 16px rgba(255,255,255,.14);
 }}
-.receipt-header h3{{ margin:0; font-size:28px; font-weight:700; color:#fff; }}
-.receipt-header p{{ margin-top:8px; color:#94a3b8; font-size:15px; }}
+.receipt-header h3 {{
+    margin: 0;
+    color: var(--receipt-text);
+    font-size: 24px;
+    line-height: 1.15;
+    font-weight: 800;
+    letter-spacing: -.7px;
+}}
+.receipt-subtitle {{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin: 9px auto 0;
+}}
+.receipt-subtitle span {{ height: 1px; flex: 1; max-width: 145px; background: #415273; }}
+.receipt-subtitle p {{ margin: 0; color: var(--receipt-muted); font-size: 15px; white-space: nowrap; }}
 
-.receipt-body{{ padding:14px 28px 30px; }}
+.receipt-content {{ padding: 12px 12px 0; }}
+.receipt-amount {{
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    padding: 14px 8px 16px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(37, 247, 157, .8);
+    border-radius: 20px;
+    background: linear-gradient(145deg, rgba(0, 224, 139, .18), rgba(5, 56, 73, .55) 55%, rgba(3, 24, 52, .7));
+    box-shadow: inset 0 0 24px rgba(0, 231, 142, .07), 0 0 18px rgba(0, 221, 131, .08);
+}}
+.receipt-amount-label {{ display: block; margin-bottom: 5px; color: #dce8ff; font-size: 15px; }}
+.receipt-amount-value {{
+    color: var(--receipt-green);
+    font-size: 30px;
+    line-height: 1.15;
+    font-weight: 900;
+    letter-spacing: -.8px;
+    overflow-wrap: anywhere;
+}}
+.receipt-details {{
+    padding: 5px 12px;
+    border: 1px solid rgba(83, 116, 174, .23);
+    border-radius: 21px;
+    background: linear-gradient(150deg, rgba(11, 29, 62, .97), rgba(5, 17, 40, .97));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+}}
+.receipt-row {{
+    display: grid;
+    grid-template-columns: 38px minmax(76px, .85fr) minmax(0, 1.25fr);
+    align-items: center;
+    gap: 9px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--receipt-line);
+}}
+.receipt-row:last-child {{ border-bottom: 0; }}
+.receipt-row-icon {{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: var(--receipt-row-icon);
+    color: #e2eaff;
+    font-size: 17px;
+}}
+.receipt-row-label {{ min-width: 0; color: var(--receipt-muted); font-size: 13px; line-height: 1.35; }}
+.receipt-row strong {{
+    min-width: 0;
+    color: var(--receipt-text);
+    text-align: right;
+    font-size: 13px;
+    line-height: 1.45;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}}
+.receipt-row-destination {{ align-items: start; }}
+.receipt-row-destination .receipt-row-icon {{ margin-top: 1px; }}
+.receipt-status-icon {{
+    color: #fff;
+    background: linear-gradient(145deg, #16e985, #087a58);
+    box-shadow: 0 0 13px rgba(22,233,133,.2);
+}}
+.receipt-status-badge {{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    max-width: 100%;
+    padding: 7px 12px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+}}
+.status-success {{ color: #a4ffd0; background: rgba(13, 204, 113, .17); border-color: rgba(31, 245, 139, .55); }}
+.status-dot {{ width: 7px; height: 7px; border-radius: 50%; background: currentColor; }}
 
-.receipt-amount{{ text-align:center; padding:24px 0 28px; border-top:1px solid rgba(255,255,255,.05); border-bottom:1px dashed rgba(255,255,255,.08); }}
-.receipt-amount-label{{ display:block; color:#94a3b8; font-size:13px; margin-bottom:8px; }}
-.receipt-amount-value{{ font-size:36px; font-weight:800; color:#22c55e; }}
-
-.receipt-row{{ display:flex; justify-content:space-between; align-items:flex-start; gap:20px; padding:18px 0; border-bottom:1px dashed rgba(255,255,255,.08); }}
-.receipt-row:last-child{{ border-bottom:none; }}
-.receipt-row span{{ color:#94a3b8; font-size:14px; }}
-.receipt-row strong{{ color:#fff; text-align:right; max-width:65%; word-break:break-word; line-height:1.5; }}
-
-.receipt-status-badge{{ display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:8px 16px; border-radius:999px; font-size:13px; font-weight:600; white-space:nowrap; }}
-.status-success{{ background:rgba(34,197,94,.12); color:#22c55e; border:1px solid rgba(34,197,94,.2); }}
-.status-dot{{ width:7px; height:7px; border-radius:50%; background:currentColor; opacity:.75; }}
+.receipt-footer {{ padding: 12px 12px 14px; background: linear-gradient(180deg, transparent, rgba(1, 11, 29, .25)); }}
+.receipt-back-button {{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 13px;
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 16px;
+    border: 2px solid #27e991;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--receipt-text);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+}}
+.receipt-back-button i {{ font-size: 20px; }}
 </style>
 </head>
 <body>
 
 <div class="receipt-modal">
+    <section class="receipt-card" aria-labelledby="receiptTitle">
+        <header class="receipt-header">
+            <div class="receipt-check" aria-hidden="true"><i class="fas fa-check"></i></div>
+            <h3 id="receiptTitle">Withdrawal Receipt</h3>
+            <div class="receipt-subtitle"><span></span><p>Transaction Details</p><span></span></div>
+        </header>
 
-    <div class="receipt-card">
-
-        <button type="button" class="receipt-close" aria-label="Close Receipt">&times;</button>
-
-        <div class="receipt-header">
-            <div class="receipt-check">&#10003;</div>
-            <h3>Withdrawal Receipt</h3>
-            <p>Transaction Details</p>
-        </div>
-
-        <div class="receipt-body">
-
+        <div class="receipt-content">
             <div class="receipt-amount">
                 <span class="receipt-amount-label">Amount To Receive</span>
                 <div class="receipt-amount-value">&#8358;{fmt_ngn(net_ngn)}</div>
             </div>
 
-            <div class="receipt-row">
-                <span>Reference</span>
-                <strong>{ref}</strong>
+            <div class="receipt-details">
+                <div class="receipt-row">
+                    <span class="receipt-row-icon" aria-hidden="true"><i class="fas fa-hashtag"></i></span>
+                    <span class="receipt-row-label">Reference</span>
+                    <strong>{ref}</strong>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-row-icon" aria-hidden="true"><i class="fas fa-coins"></i></span>
+                    <span class="receipt-row-label">Withdrawal Amount</span>
+                    <strong>{usdt:,.2f} USDT</strong>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-row-icon" aria-hidden="true"><i class="far fa-credit-card"></i></span>
+                    <span class="receipt-row-label">Method</span>
+                    <strong>Bank Withdrawal</strong>
+                </div>
+                <div class="receipt-row receipt-row-destination">
+                    <span class="receipt-row-icon" aria-hidden="true"><i class="fas fa-university"></i></span>
+                    <span class="receipt-row-label">Destination</span>
+                    <strong>{destination}</strong>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-row-icon receipt-status-icon" aria-hidden="true"><i class="fas fa-check"></i></span>
+                    <span class="receipt-row-label">Status</span>
+                    <strong><span class="receipt-status-badge status-success"><span class="status-dot"></span>Completed</span></strong>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-row-icon" aria-hidden="true"><i class="far fa-calendar-alt"></i></span>
+                    <span class="receipt-row-label">Date &amp; Time</span>
+                    <strong>{date_str}</strong>
+                </div>
             </div>
-
-            <div class="receipt-row">
-                <span>Withdrawal Amount</span>
-                <strong>{usdt:,.2f} USDT</strong>
-            </div>
-
-            <div class="receipt-row">
-                <span>Method</span>
-                <strong>Bank Withdrawal</strong>
-            </div>
-
-            <div class="receipt-row">
-                <span>Destination</span>
-                <strong>{destination}</strong>
-            </div>
-
-            <div class="receipt-row">
-                <span>Status</span>
-                <strong><span class="receipt-status-badge status-success"><span class="status-dot"></span>Completed</span></strong>
-            </div>
-
-            <div class="receipt-row">
-                <span>Date &amp; Time</span>
-                <strong>{date_str}</strong>
-            </div>
-
         </div>
 
-    </div>
-
+        <footer class="receipt-footer">
+            <div class="receipt-back-button">
+                <i class="fas fa-home" aria-hidden="true"></i>
+                <span>Back to Transaction</span>
+            </div>
+        </footer>
+    </section>
 </div>
 
 </body>
@@ -850,7 +972,7 @@ async def html_to_image(html: str) -> BytesIO:
         page = await context.new_page()
 
         # Load page; allow 30 s for CDN resources
-        await page.set_content(html, wait_until="domcontentloaded", timeout=60_000)
+        await page.set_content(html, wait_until="networkidle", timeout=30_000)
 
         # Extra pause for slower CDN hosts (ibb.co, vercel blob, postimg…)
         await asyncio.sleep(3)
